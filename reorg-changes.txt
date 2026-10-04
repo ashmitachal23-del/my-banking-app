@@ -1,0 +1,17 @@
+Reorganization performed:
+
+Backup created: BankingApp-backup.zip
+
+Moved files into src/main/java/banking:
+- Account.java, AccountDAO.java, DBConnection.java, Loan.java, LoanDAO.java,
+- Transaction.java, TransactionDAO.java, User.java, UserDAO.java
+- AdminDashboard.java, CustomerDashboard.java, StaffDashboard.java,
+- LoginScreen.java, TransactionHistoryPopup.java, UITheme.java
+
+Moved UI classes into src/main/java/banking/ui/
+
+Moved database_setup.sql -> sql/database_setup.sql
+
+Archived unrelated files to archive/java-examples and archive/bin
+
+Created README.md

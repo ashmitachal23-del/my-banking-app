@@ -1,0 +1,348 @@
+2026-09-24 23:30:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "-- ============================================================\000a--  SECUREBANK — Run this in MySQL before starting the app\000a-- ============================================================\000aCREATE [*]DATABASE IF NOT EXISTS banking_system;\000aUSE banking_system;\000a\000a-- Users\000aCREATE TABLE IF NOT EXISTS users (\000a    user_id    INT AUTO_INCREMENT PRIMARY KEY,\000a    username   VARCHAR(50)  NOT NULL UNIQUE,\000a    password   VARCHAR(255) NOT NULL,\000a    role       ENUM('ADMIN','CUSTOMER','STAFF') NOT NULL,\000a    full_name  VARCHAR(100) NOT NULL,\000a    email      VARCHAR(100),\000a    phone      VARCHAR(20),\000a    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\000a    is_active  BOOLEAN DEFAULT TRUE\000a);\000a\000a-- Accounts\000aCREATE TABLE IF NOT EXISTS accounts (\000a    account_id     INT AUTO_INCREMENT PRIMARY KEY,\000a    account_number VARCHAR(20) NOT NULL UNIQUE,\000a    user_id        INT NOT NULL,\000a    account_type   ENUM('SAVINGS','CURRENT','FIXED_DEPOSIT') NOT NULL,\000a    balance        DECIMAL(15,2) DEFAULT 0.00,\000a    opened_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\000a    status         ENUM('ACTIVE','INACTIVE','CLOSED','FROZEN') DEFAULT 'ACTIVE',\000a    FOREIGN KEY (user_id) REFERENCES users(user_id)\000a);\000a\000a-- Transactions\000aCREATE TABLE IF NOT EXISTS transactions (\000a    transaction_id   INT AUTO_INCREMENT PRIMARY KEY,\000a    account_id       INT NOT NULL,\000a    transaction_type ENUM('DEPOSIT','WITHDRAWAL','TRANSFER_IN','TRANSFER_OUT') NOT NULL,\000a    amount           DECIMAL(15,2) NOT NULL,\000a    balance_after    DECIMAL(15,2) NOT NULL,\000a    description      VARCHAR(255),\000a    ref_account_id   INT,\000a    transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\000a    performed_by     INT,\000a    FOREIGN KEY (account_id)   REFERENCES accounts(account_id),\000a    FOREIGN KEY (performed_by) REFERENCES users(user_id)\000a);\000a\000a-- Loans\000aCREATE TABLE IF NOT EXISTS loans (\000a    loan_id       INT AUTO_INCREMENT PRIMARY KEY,\000a    account_id    INT NOT NULL,\000a    loan_type     ENUM('HOME','CAR','PERSONAL','EDUCATION','BUSINESS') NOT NULL,\000a    principal     DECIMAL(15,2) NOT NULL,\000a    interest_rate DECIMAL(5,2)  NOT NULL,\000a    tenure_months INT NOT NULL,\000a    emi_amount    DECIMAL(15,2) NOT NULL,\000a    outstanding   DECIMAL(15,2) NOT NULL,\000a    status        ENUM('PENDING','APPROVED','REJECTED','ACTIVE','CLOSED') DEFAULT 'PENDING',\000a    applied_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\000a    approved_by   INT,\000a    FOREIGN KEY (account_id) REFERENCES accounts(account_id)\000a);\000a\000a-- Loan Payments\000aCREATE TABLE IF NOT EXISTS loan_payments (\000a    payment_id   INT AUTO_INCREMENT PRIMARY KEY,\000a    loan_id      INT NOT NULL,\000a    amount_paid  DECIMAL(15,2) NOT NULL,\000a    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\000a    FOREIGN KEY (loan_id) REFERENCES loans(loan_id)\000a);\000a\000a-- ── Default seed data ──────────────────────────────────────\000aINSERT IGNORE INTO users (username,password,role,full_name,email,phone)\000aVALUES ('admin','admin123','ADMIN','System Administrator','admin@bank.com','9999999999');\000a\000aINSERT IGNORE INTO users (username,password,role,full_name,email,phone)\000aVALUES ('staff1','staff123','STAFF','Bank Staff One','staff1@bank.com','9888888888');\000a\000aINSERT IGNORE INTO users (username,password,role,full_name,email,phone)\000aVALUES ('customer1','cust123','CUSTOMER','John Doe','john@email.com','9777777777');\000a\000aINSERT IGNORE INTO accounts (account_number,user_id,account_type,balance)\000aSELECT 'ACC0000001', user_id, 'SAVINGS', 50000.00\000aFROM users WHERE username = 'customer1'"; expected "OR REPLACE, FORCE, VIEW, MATERIALIZED, ALIAS, SEQUENCE, USER, TRIGGER, ROLE, SCHEMA, CONSTANT, DOMAIN, TYPE, DATATYPE, AGGREGATE, LINKED, MEMORY, CACHED, LOCAL TEMPORARY, GLOBAL TEMPORARY, TEMP, TEMPORARY, TABLE, SYNONYM, UNIQUE, HASH, SPATIAL, INDEX"; SQL statement:
+-- ============================================================
+--  SECUREBANK — Run this in MySQL before starting the app
+-- ============================================================
+CREATE DATABASE IF NOT EXISTS banking_system;
+USE banking_system;
+
+-- Users
+CREATE TABLE IF NOT EXISTS users (
+    user_id    INT AUTO_INCREMENT PRIMARY KEY,
+    username   VARCHAR(50)  NOT NULL UNIQUE,
+    password   VARCHAR(255) NOT NULL,
+    role       ENUM('ADMIN','CUSTOMER','STAFF') NOT NULL,
+    full_name  VARCHAR(100) NOT NULL,
+    email      VARCHAR(100),
+    phone      VARCHAR(20),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active  BOOLEAN DEFAULT TRUE
+);
+
+-- Accounts
+CREATE TABLE IF NOT EXISTS accounts (
+    account_id     INT AUTO_INCREMENT PRIMARY KEY,
+    account_number VARCHAR(20) NOT NULL UNIQUE,
+    user_id        INT NOT NULL,
+    account_type   ENUM('SAVINGS','CURRENT','FIXED_DEPOSIT') NOT NULL,
+    balance        DECIMAL(15,2) DEFAULT 0.00,
+    opened_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status         ENUM('ACTIVE','INACTIVE','CLOSED','FROZEN') DEFAULT 'ACTIVE',
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- Transactions
+CREATE TABLE IF NOT EXISTS transactions (
+    transaction_id   INT AUTO_INCREMENT PRIMARY KEY,
+    account_id       INT NOT NULL,
+    transaction_type ENUM('DEPOSIT','WITHDRAWAL','TRANSFER_IN','TRANSFER_OUT') NOT NULL,
+    amount           DECIMAL(15,2) NOT NULL,
+    balance_after    DECIMAL(15,2) NOT NULL,
+    description      VARCHAR(255),
+    ref_account_id   INT,
+    transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    performed_by     INT,
+    FOREIGN KEY (account_id)   REFERENCES accounts(account_id),
+    FOREIGN KEY (performed_by) REFERENCES users(user_id)
+);
+
+-- Loans
+CREATE TABLE IF NOT EXISTS loans (
+    loan_id       INT AUTO_INCREMENT PRIMARY KEY,
+    account_id    INT NOT NULL,
+    loan_type     ENUM('HOME','CAR','PERSONAL','EDUCATION','BUSINESS') NOT NULL,
+    principal     DECIMAL(15,2) NOT NULL,
+    interest_rate DECIMAL(5,2)  NOT NULL,
+    tenure_months INT NOT NULL,
+    emi_amount    DECIMAL(15,2) NOT NULL,
+    outstanding   DECIMAL(15,2) NOT NULL,
+    status        ENUM('PENDING','APPROVED','REJECTED','ACTIVE','CLOSED') DEFAULT 'PENDING',
+    applied_date  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    approved_by   INT,
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id)
+);
+
+-- Loan Payments
+CREATE TABLE IF NOT EXISTS loan_payments (
+    payment_id   INT AUTO_INCREMENT PRIMARY KEY,
+    loan_id      INT NOT NULL,
+    amount_paid  DECIMAL(15,2) NOT NULL,
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (loan_id) REFERENCES loans(loan_id)
+);
+
+-- ── Default seed data ──────────────────────────────────────
+INSERT IGNORE INTO users (username,password,role,full_name,email,phone)
+VALUES ('admin','admin123','ADMIN','System Administrator','admin@bank.com','9999999999');
+
+INSERT IGNORE INTO users (username,password,role,full_name,email,phone)
+VALUES ('staff1','staff123','STAFF','Bank Staff One','staff1@bank.com','9888888888');
+
+INSERT IGNORE INTO users (username,password,role,full_name,email,phone)
+VALUES ('customer1','cust123','CUSTOMER','John Doe','john@email.com','9777777777');
+
+INSERT IGNORE INTO accounts (account_number,user_id,account_type,balance)
+SELECT 'ACC0000001', user_id, 'SAVINGS', 50000.00
+FROM users WHERE username = 'customer1' [42001-220]
+2026-09-24 23:40:48 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "users" not found (this database is empty); SQL statement:
+SELECT * FROM users WHERE username=? AND password=? AND is_active=TRUE [42104-220]
+2026-09-24 23:48:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:06 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:09 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:11 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:11 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:11 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:12 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:14 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:14 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:14 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:14 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:14 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:14 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:15 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:15 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-24 23:48:15 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-220]
+2026-09-26 01:24:07 jdbc[6]: null
+org.h2.message.DbException: The connection was not closed by the application and is garbage collected [90018-220]
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.message.DbException.get(DbException.java:188)
+	at org.h2.jdbc.JdbcConnection.closeOld(JdbcConnection.java:190)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:132)
+	at org.h2.Driver.connect(Driver.java:59)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:613)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:199)
+	at banking.db.DBConnection.getConnection(DBConnection.java:57)
+	at banking.db.TransactionDAO.getMini(TransactionDAO.java:105)
+	at banking.ui.customer.CustomerDashboard.lambda$tabMiniStatement$2(CustomerDashboard.java:476)
+	at java.desktop/javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:1972)
+	at java.desktop/javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2314)
+	at java.desktop/javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:407)
+	at java.desktop/javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:262)
+	at java.desktop/javax.swing.plaf.basic.BasicButtonListener.mouseReleased(BasicButtonListener.java:279)
+	at java.desktop/java.awt.Component.processMouseEvent(Component.java:6576)
+	at java.desktop/javax.swing.JComponent.processMouseEvent(JComponent.java:3404)
+	at java.desktop/java.awt.Component.processEvent(Component.java:6341)
+	at java.desktop/java.awt.Container.processEvent(Container.java:2260)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:4958)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2318)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4916)
+	at java.desktop/java.awt.LightweightDispatcher.processMouseEvent(Container.java:4559)
+	at java.desktop/java.awt.LightweightDispatcher.dispatchEvent(Container.java:4500)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2304)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2671)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:725)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:702)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientConnectionException: The connection was not closed by the application and is garbage collected [90018-220]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	... 37 more
+2026-09-26 16:30:12 jdbc[11]: null
+org.h2.message.DbException: The connection was not closed by the application and is garbage collected [90018-220]
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.message.DbException.get(DbException.java:188)
+	at org.h2.jdbc.JdbcConnection.closeOld(JdbcConnection.java:190)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:132)
+	at org.h2.Driver.connect(Driver.java:59)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:613)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:199)
+	at banking.db.DBConnection.getConnection(DBConnection.java:57)
+	at banking.db.LoanDAO.apply(LoanDAO.java:34)
+	at banking.ui.customer.CustomerDashboard.lambda$showApplyLoan$6(CustomerDashboard.java:436)
+	at java.desktop/javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:1972)
+	at java.desktop/javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2314)
+	at java.desktop/javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:407)
+	at java.desktop/javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:262)
+	at java.desktop/javax.swing.plaf.basic.BasicButtonListener.mouseReleased(BasicButtonListener.java:279)
+	at java.desktop/java.awt.Component.processMouseEvent(Component.java:6576)
+	at java.desktop/javax.swing.JComponent.processMouseEvent(JComponent.java:3404)
+	at java.desktop/java.awt.Component.processEvent(Component.java:6341)
+	at java.desktop/java.awt.Container.processEvent(Container.java:2260)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:4958)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2318)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4916)
+	at java.desktop/java.awt.LightweightDispatcher.processMouseEvent(Container.java:4559)
+	at java.desktop/java.awt.LightweightDispatcher.dispatchEvent(Container.java:4500)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2304)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2671)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:725)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:702)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:117)
+	at java.desktop/java.awt.WaitDispatchSupport$2.run(WaitDispatchSupport.java:187)
+	at java.desktop/java.awt.WaitDispatchSupport.enter(WaitDispatchSupport.java:229)
+	at java.desktop/java.awt.Dialog.show(Dialog.java:1051)
+	at java.desktop/java.awt.Component.show(Component.java:1690)
+	at java.desktop/java.awt.Component.setVisible(Component.java:1637)
+	at java.desktop/java.awt.Window.setVisible(Window.java:982)
+	at java.desktop/java.awt.Dialog.setVisible(Dialog.java:989)
+	at banking.ui.customer.CustomerDashboard.showApplyLoan(CustomerDashboard.java:449)
+	at banking.ui.customer.CustomerDashboard.lambda$tabLoans$1(CustomerDashboard.java:361)
+	at java.desktop/javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:1972)
+	at java.desktop/javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2314)
+	at java.desktop/javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:407)
+	at java.desktop/javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:262)
+	at java.desktop/javax.swing.plaf.basic.BasicButtonListener.mouseReleased(BasicButtonListener.java:279)
+	at java.desktop/java.awt.Component.processMouseEvent(Component.java:6576)
+	at java.desktop/javax.swing.JComponent.processMouseEvent(JComponent.java:3404)
+	at java.desktop/java.awt.Component.processEvent(Component.java:6341)
+	at java.desktop/java.awt.Container.processEvent(Container.java:2260)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:4958)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2318)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4916)
+	at java.desktop/java.awt.LightweightDispatcher.processMouseEvent(Container.java:4559)
+	at java.desktop/java.awt.LightweightDispatcher.dispatchEvent(Container.java:4500)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2304)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2671)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:725)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:702)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientConnectionException: The connection was not closed by the application and is garbage collected [90018-220]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	... 69 more
+2026-09-26 16:30:12 jdbc[11]: null
+org.h2.message.DbException: The connection was not closed by the application and is garbage collected [90018-220]
+	at org.h2.message.DbException.get(DbException.java:223)
+	at org.h2.message.DbException.get(DbException.java:199)
+	at org.h2.message.DbException.get(DbException.java:188)
+	at org.h2.jdbc.JdbcConnection.closeOld(JdbcConnection.java:190)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:132)
+	at org.h2.Driver.connect(Driver.java:59)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:613)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:199)
+	at banking.db.DBConnection.getConnection(DBConnection.java:57)
+	at banking.db.LoanDAO.apply(LoanDAO.java:34)
+	at banking.ui.customer.CustomerDashboard.lambda$showApplyLoan$6(CustomerDashboard.java:436)
+	at java.desktop/javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:1972)
+	at java.desktop/javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2314)
+	at java.desktop/javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:407)
+	at java.desktop/javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:262)
+	at java.desktop/javax.swing.plaf.basic.BasicButtonListener.mouseReleased(BasicButtonListener.java:279)
+	at java.desktop/java.awt.Component.processMouseEvent(Component.java:6576)
+	at java.desktop/javax.swing.JComponent.processMouseEvent(JComponent.java:3404)
+	at java.desktop/java.awt.Component.processEvent(Component.java:6341)
+	at java.desktop/java.awt.Container.processEvent(Container.java:2260)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:4958)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2318)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4916)
+	at java.desktop/java.awt.LightweightDispatcher.processMouseEvent(Container.java:4559)
+	at java.desktop/java.awt.LightweightDispatcher.dispatchEvent(Container.java:4500)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2304)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2671)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:725)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:702)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:117)
+	at java.desktop/java.awt.WaitDispatchSupport$2.run(WaitDispatchSupport.java:187)
+	at java.desktop/java.awt.WaitDispatchSupport.enter(WaitDispatchSupport.java:229)
+	at java.desktop/java.awt.Dialog.show(Dialog.java:1051)
+	at java.desktop/java.awt.Component.show(Component.java:1690)
+	at java.desktop/java.awt.Component.setVisible(Component.java:1637)
+	at java.desktop/java.awt.Window.setVisible(Window.java:982)
+	at java.desktop/java.awt.Dialog.setVisible(Dialog.java:989)
+	at banking.ui.customer.CustomerDashboard.showApplyLoan(CustomerDashboard.java:449)
+	at banking.ui.customer.CustomerDashboard.lambda$tabLoans$1(CustomerDashboard.java:361)
+	at java.desktop/javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:1972)
+	at java.desktop/javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2314)
+	at java.desktop/javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:407)
+	at java.desktop/javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:262)
+	at java.desktop/javax.swing.plaf.basic.BasicButtonListener.mouseReleased(BasicButtonListener.java:279)
+	at java.desktop/java.awt.Component.processMouseEvent(Component.java:6576)
+	at java.desktop/javax.swing.JComponent.processMouseEvent(JComponent.java:3404)
+	at java.desktop/java.awt.Component.processEvent(Component.java:6341)
+	at java.desktop/java.awt.Container.processEvent(Container.java:2260)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:4958)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2318)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.LightweightDispatcher.retargetMouseEvent(Container.java:4916)
+	at java.desktop/java.awt.LightweightDispatcher.processMouseEvent(Container.java:4559)
+	at java.desktop/java.awt.LightweightDispatcher.dispatchEvent(Container.java:4500)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2304)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2671)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4790)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:725)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:702)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientConnectionException: The connection was not closed by the application and is garbage collected [90018-220]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:690)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	... 69 more
